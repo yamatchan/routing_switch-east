@@ -48,6 +48,10 @@ class PathManager < Trema::Controller
     add_graph_path mac_address, port
   end
 
+  def add_graphviz(graphviz)
+    @graphviz = graphviz
+  end
+
   private
 
   def external_ports
@@ -73,10 +77,12 @@ class PathManager < Trema::Controller
   def maybe_create_shortest_path(packet_in)
     shortest_path = dijkstra(packet_in.source_mac, packet_in.destination_mac)
     return unless shortest_path
+    @graphviz.update_shortest_path shortest_path
     Path.create(shortest_path, packet_in).tap { |new_path| @path << new_path }
   end
 
   def dijkstra(source_mac, destination_mac)
+    return if @graph[source_mac].empty?
     return if @graph[destination_mac].empty?
     route = Dijkstra.new(@graph).run(source_mac, destination_mac)
     route.reject { |each| each.is_a? Integer }

@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 gem 'bundler'
 gem 'grape'
 gem 'trema'
+gem 'ruby-graphviz'
 
 group :development, :test do
   gem 'aruba', '~> 0.6.2', require: false
