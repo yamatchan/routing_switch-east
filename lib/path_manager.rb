@@ -75,7 +75,19 @@ class PathManager < Trema::Controller
   end
 
   def maybe_create_shortest_path(packet_in)
-    shortest_path = dijkstra(packet_in.source_ip_address, packet_in.destination_ip_address)
+    case packet_in.data
+    when Arp::Request, Arp::Reply
+      source_ip = packet_in.sender_protocol_address
+      destination_ip = packet_in.target_protocol_address
+    when Parser::IPv4Packet
+      source_ip = packet_in.source_ip_address
+      destination_ip = packet_in.destination_ip_address
+    else
+      sourde_ip = ""
+      destiantion_ip = ""
+    end
+
+    shortest_path = dijkstra(source_ip, destination_ip)
     return unless shortest_path
     @graphviz.update_shortest_path shortest_path
     Path.create(shortest_path, packet_in).tap { |new_path| @path << new_path }

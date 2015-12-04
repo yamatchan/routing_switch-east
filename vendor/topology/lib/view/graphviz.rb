@@ -8,7 +8,6 @@ module View
       @switch_nodes = {}
       @host_nodes = []
       @edges = []
-      @mac2ip = {}
     end
 
     # rubocop:disable AbcSize
@@ -16,7 +15,6 @@ module View
       @switch_nodes.clear
       @host_nodes.clear
       @edges.clear
-      @mac2ip.clear
 
       @switch_nodes = topology.switches.each_with_object({}) do |each, tmp|
         tmp[each] = each.to_hex
@@ -25,7 +23,6 @@ module View
       @edges = topology.hosts.each_with_object([]) do |each, tmp|
         mac_address, ip_address, dpid, port_no = each
         @host_nodes << ip_address.to_s
-        @mac2ip[mac_address.to_s] = ip_address.to_s
         tmp << [ip_address.to_s, dpid.to_hex]
       end
 
