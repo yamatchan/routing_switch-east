@@ -71,8 +71,8 @@ class Topology
   def maybe_add_host(*host)
     return if @hosts.include?(host)
     @hosts << host
-    mac_address, _ip_address, dpid, port_no = *host
-    maybe_send_handler :add_host, mac_address, Port.new(dpid, port_no), self
+    _mac_address, ip_address, dpid, port_no = *host
+    maybe_send_handler :add_host, ip_address, Port.new(dpid, port_no), self
   end
 
   def route(ip_source_address, ip_destination_address)

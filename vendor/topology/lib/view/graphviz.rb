@@ -62,7 +62,7 @@ module View
 
       shortest_path.each_slice(2) { |edge|
         edge.each_with_index { |node, i|
-          edge[i] = node.kind_of?(Pio::Mac) ? @mac2ip[node.to_s] : node.dpid.to_hex
+          edge[i] = node.kind_of?(Pio::IPv4Address) ? node.to_s : node.dpid.to_hex
         }
         red_edges << edge
       }
