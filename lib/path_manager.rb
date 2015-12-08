@@ -44,8 +44,12 @@ class PathManager < Trema::Controller
     end
   end
 
-  def add_host(mac_address, port, _topology)
-    add_graph_path mac_address, port
+  def add_host(ip_address, port, _topology)
+    add_graph_path ip_address, port
+  end
+
+  def add_graphviz(graphviz)
+    @graphviz = graphviz
   end
 
   private
@@ -71,14 +75,28 @@ class PathManager < Trema::Controller
   end
 
   def maybe_create_shortest_path(packet_in)
-    shortest_path = dijkstra(packet_in.source_mac, packet_in.destination_mac)
+    case packet_in.data
+    when Arp::Request, Arp::Reply
+      source_ip = packet_in.sender_protocol_address
+      destination_ip = packet_in.target_protocol_address
+    when Parser::IPv4Packet
+      source_ip = packet_in.source_ip_address
+      destination_ip = packet_in.destination_ip_address
+    else
+      sourde_ip = ""
+      destiantion_ip = ""
+    end
+
+    shortest_path = dijkstra(source_ip, destination_ip)
     return unless shortest_path
+    @graphviz.update_shortest_path shortest_path
     Path.create(shortest_path, packet_in).tap { |new_path| @path << new_path }
   end
 
-  def dijkstra(source_mac, destination_mac)
-    return if @graph[destination_mac].empty?
-    route = Dijkstra.new(@graph).run(source_mac, destination_mac)
+  def dijkstra(source_ip_address, destination_ip_address)
+    return if @graph[source_ip_address].empty?
+    return if @graph[destination_ip_address].empty?
+    route = Dijkstra.new(@graph).run(source_ip_address, destination_ip_address)
     route.reject { |each| each.is_a? Integer }
   end
 end

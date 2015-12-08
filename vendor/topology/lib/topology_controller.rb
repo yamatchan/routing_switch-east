@@ -6,6 +6,7 @@ class TopologyController < Trema::Controller
   timer_event :flood_lldp_frames, interval: 1.sec
 
   attr_reader :topology
+  attr_reader :command_line
 
   def start(args)
     @command_line = CommandLine.new(logger)
@@ -46,7 +47,7 @@ class TopologyController < Trema::Controller
   def packet_in(dpid, packet_in)
     if packet_in.lldp?
       @topology.maybe_add_link Link.new(dpid, packet_in)
-    else
+    elsif packet_in.ether_type == Pio::EthernetHeader::EtherType::IPV4
       @topology.maybe_add_host(packet_in.source_mac,
                                packet_in.source_ip_address,
                                dpid,
