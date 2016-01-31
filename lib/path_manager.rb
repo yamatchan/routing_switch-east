@@ -14,11 +14,26 @@ class PathManager < Trema::Controller
   def packet_in(_dpid, message)
     path = maybe_create_shortest_path(message)
     ports = path ? [path.out_port] : external_ports
-    ports.each do |each|
-      send_packet_out(each.dpid,
+
+#    ports.each do |each|
+#      return if each.nil?
+#      p "send_packet_out"
+#      send_packet_out(each.dpid,
+#                      raw_data: message.raw_data,
+#                      actions: SendOutPort.new(each.number))
+#    end
+    port_arr = [31,32,33]
+    port_arr.delete(message.in_port)
+p port_arr
+    port_arr.each do |each|
+      send_packet_out(_dpid,
                       raw_data: message.raw_data,
-                      actions: SendOutPort.new(each.number))
+                      actions: SendOutPort.new(each))
     end
+
+#      send_packet_out(_dpid,
+#                      raw_data: message.raw_data,
+#                      actions: SendOutPort.new(:flood))
   end
 
   def add_port(port, _topology)
@@ -83,11 +98,13 @@ class PathManager < Trema::Controller
       source_ip = packet_in.source_ip_address
       destination_ip = packet_in.destination_ip_address
     else
-      sourde_ip = ""
+      source_ip = ""
       destiantion_ip = ""
     end
+    p "source_ip: #{source_ip} -> destination_ip: #{destination_ip}"
 
-    shortest_path = dijkstra(source_ip, destination_ip)
+    #shortest_path = dijkstra(source_ip, destination_ip)
+    shortest_path = nil
     return unless shortest_path
     @graphviz.update_shortest_path shortest_path
     Path.create(shortest_path, packet_in).tap { |new_path| @path << new_path }

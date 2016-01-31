@@ -45,13 +45,17 @@ class TopologyController < Trema::Controller
   end
 
   def packet_in(dpid, packet_in)
-    if packet_in.lldp?
-      @topology.maybe_add_link Link.new(dpid, packet_in)
-    elsif packet_in.ether_type == Pio::EthernetHeader::EtherType::IPV4
-      @topology.maybe_add_host(packet_in.source_mac,
-                               packet_in.source_ip_address,
-                               dpid,
-                               packet_in.in_port)
+    begin
+      if packet_in.lldp?
+        @topology.maybe_add_link Link.new(dpid, packet_in)
+      elsif packet_in.ether_type == Pio::EthernetHeader::EtherType::IPV4
+        @topology.maybe_add_host(packet_in.source_mac,
+                                 packet_in.source_ip_address,
+                                 dpid,
+                                 packet_in.in_port)
+      end
+    rescue => ex
+      puts ex.message
     end
   end
 

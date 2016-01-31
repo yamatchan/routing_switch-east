@@ -47,9 +47,9 @@ module View
         @edges.each do |edge|
           gviz.add_edges edge[0], edge[1], dir: "none" unless red_edges.include?(edge) || red_edges.include?(edge.reverse)
         end
-        red_edges.each do |edge|
-          gviz.add_edges edge[0], edge[1], dir: "none", color: "red"
-        end
+#        red_edges.each do |edge|
+#          gviz.add_edges edge[0], edge[1], dir: "none", color: "red"
+#        end
         gviz.output png: @output
       end
     end

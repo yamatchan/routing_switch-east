@@ -45,6 +45,7 @@ class Path < Trema::Controller
 
   def flow_mod_add_to_each_switch
     path.each_slice(2) do |in_port, out_port|
+      return if out_port.nil?
       send_flow_mod_add(out_port.dpid,
                         hard_timeout: 60,
                         match: exact_match(in_port.number),

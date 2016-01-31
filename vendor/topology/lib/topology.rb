@@ -72,6 +72,7 @@ class Topology
     return if @hosts.include?(host)
     @hosts << host
     _mac_address, ip_address, dpid, port_no = *host
+    return if ip_address.value.to_i == 0
     maybe_send_handler :add_host, ip_address, Port.new(dpid, port_no), self
   end
 

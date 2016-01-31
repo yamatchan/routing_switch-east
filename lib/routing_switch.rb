@@ -57,8 +57,13 @@ class RoutingSwitch < Trema::Controller
   def_delegators :@topology, :port_modify
 
   def packet_in(dpid, message)
-    @topology.packet_in(dpid, message)
-    @path_manager.packet_in(dpid, message) unless message.lldp?
+    begin
+      @topology.packet_in(dpid, message)
+      @path_manager.packet_in(dpid, message) unless message.lldp?
+    rescue => ex
+      puts ex.message
+      puts ex.backtrace
+    end
   end
 
   private
