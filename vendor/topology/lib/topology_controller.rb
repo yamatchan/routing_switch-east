@@ -21,6 +21,30 @@ class TopologyController < Trema::Controller
   end
 
   def switch_ready(dpid)
+	puts "switch_ready: #{dpid}"
+	if dpid == 0x11 then
+      puts "add flow entry"
+      # xx.xx.xx.xx -> 169.254.32.11 => outport: 32
+      send_flow_mod_add(
+        dpid,
+		match: Match.new(
+		  in_port: 31,
+		  destination_ip_address: '169.254.32.11',
+		),
+		actions: SendOutPort.new(32),
+	  )
+
+      # xx.xx.xx.xx -> 169.254.16.11 => outport: 31
+      send_flow_mod_add(
+        dpid,
+		match: Match.new(
+		  in_port: 32,
+		  destination_ip_address: '169.254.16.11',
+		),
+		actions: SendOutPort.new(31),
+	  )
+	end
+
     send_message dpid, Features::Request.new
   end
 
