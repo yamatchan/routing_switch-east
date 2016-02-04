@@ -21,63 +21,29 @@ class TopologyController < Trema::Controller
   end
 
   def switch_ready(dpid)
-	puts "switch_ready: #{dpid}"
-	if dpid == 0x11 then
-        puts "add flow entry"
-      # xx.xx.xx.xx -> 169.254.32.11 => outport: 32
-=begin
-      send_flow_mod_add(
-        dpid,
-		match: Match.new(
-		 # in_port: 31,
-#                  ether_type: Pio::EthernetHeader::EtherType::IPV4,
-		  destination_ip_address_all: IPv4Address.new('169.254.32.11'),
-		),
-		actions: SendOutPort.new(32),
-	  )
+    puts "switch_ready: #{dpid}"
+    if dpid == 0x11 then
+      puts "add flow entry"
+      hash = {
+        31 => "169.254.0.11",
+        32 => "169.254.16.11",
+        33 => "169.254.32.11",
+      }
 
-      # xx.xx.xx.xx -> 169.254.16.11 => outport: 31
-      send_flow_mod_add(
-        dpid,
-		match: Match.new(
-		#  in_port: 32,
- #                 ether_type: Pio::EthernetHeader::EtherType::IPV4,
-		  destination_ip_address_all: IPv4Address.new('169.254.16.11'),
-		),
-		actions: SendOutPort.new(31),
-	  )
-=end    
-
-        hash = {31 => "169.254.0.11",
-                32 => "169.254.16.11",
-                33 => "169.254.32.11",
-                34 => "169.254.48.11"}
-
-       hash.each do |port_num,ip|
-         (31..34).each do |i_port_num| 
-           next if port_num == i_port_num
-            send_flow_mod_add(
-               dpid,
-		match: Match.new(
-		  in_port: i_port_num,
-	          ether_type: Pio::EthernetHeader::EtherType::IPV4,
-		  destination_ip_address: IPv4Address.new(ip+'/255.255.255.255'),
-		),
-		actions: SendOutPort.new(port_num),
-	    )
-          end
-       end
-#        send_flow_mod_add(
-#               dpid,
-#		match: Match.new(
-#		  in_port: 31,
-#	          ether_type: Pio::EthernetHeader::EtherType::IPV4,
-#		  destination_ip_address: 
-#                IPv4Address.new('169.254.16.11/255.255.255.255'),
-#		),
-#		actions: [SendOutPort.new(32),SendOutPort.new(33)]
-#	)
-
+      hash.each do |port_num,ip|
+        (31..33).each do |i_port_num|
+          next if port_num == i_port_num
+          send_flow_mod_add(
+            dpid,
+            match: Match.new(
+              in_port: i_port_num,
+              ether_type: Pio::EthernetHeader::EtherType::IPV4,
+              destination_ip_address: IPv4Address.new(ip+'/255.255.255.255'),
+            ),
+            actions: SendOutPort.new(port_num),
+          )
+        end
+      end
     end
     send_message dpid, Features::Request.new
   end
