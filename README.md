@@ -1,95 +1,84 @@
-Routing Switch
-==============
-[![Build Status](http://img.shields.io/travis/trema/routing_switch/develop.svg?style=flat)][travis]
-[![Code Climate](http://img.shields.io/codeclimate/github/trema/routing_switch.svg?style=flat)][codeclimate]
-[![Coverage Status](http://img.shields.io/codeclimate/coverage/github/trema/routing_switch.svg?style=flat)][codeclimate]
-[![Dependency Status](http://img.shields.io/gemnasium/trema/routing_switch.svg?style=flat)][gemnasium]
+# 動作環境
 
-This is a layer 2 switch application with virtual slicing
-function. The slicing function allows us to create multiple layer 2
-domains. This is similar to MAC-based VLAN but there is no limitation
-on VLAN ID space.
+* PC × 3台  
+  * サーバ … 1台  
+　Mac Pro  
+  * ホスト(A, B) … 2台  
+　Mac Book Pro  
+* スイッチ NEC製 PF5240  
+datapath_idが0x11のVSIを作成し，31-33番ポートをマッピングしておく．
 
-[travis]: http://travis-ci.org/trema/routing_switch
-[codeclimate]: https://codeclimate.com/github/trema/routing_switch
-[gemnasium]: https://gemnasium.com/trema/routing_switch
-
-
-Prerequisites
--------------
-
-* Ruby 2.0.0 or higher ([RVM][rvm]).
-* [Open vSwitch][openvswitch] (`apt-get install openvswitch-switch`).
-
-[rvm]: https://rvm.io/
-[openvswitch]: https://openvswitch.org/
+# 配線
+サーバを31番ポート  
+ホストAを32番ポート  
+ホストBを33番ポート  
+にそれぞれ接続する．
 
 
-Install
--------
+# イメージファイルの取得
+所定のURLからイメージファイルをダウンロードする．  
+zipファイルを解凍すると，以下のファイルが展開される．  
 
-```bash
-git clone https://github.com/trema/routing_switch.git
-cd routing_switch
-bundle install --binstubs
+* Server.ova … サーバ
+* HostA.ova … ホストA
+* HostB.ova … ホストB
+
+
+# イメージファイルの設定
+* [File] -> [Inport Appliance…] より，  
+ダウンロードしたイメージファイルをそれぞれの端末にインポートする．
+
+## サーバの設定
+
+* [Settings] -> [Network] より，ネットワークアダプタの設定を行う．  
+  * Adapter 1  
+Enable Network Adapter: Check  
+Attached to: NAT  
+Cable Connected: Check  
+  * Adapter 2  
+Enable Network Adapter: Check  
+Attached to: Bridged Adapter  
+Name: en*: Ethernet (スイッチに接続しているEtherポートを選択)  
+Promiscuous Mode: Allow All  
+Cable Connected: Check  
+  * Adapter 3  
+Enable Network Adapter: Check  
+Attached to: Host-ponly Adapter  
+Promiscuous Mode: Allow All  
+Cable Connected: Check
+
+## ホストA, Bの設定
+
+* [Settings] -> [Network] より，ネットワークアダプタの設定を行う．
+  * Adapter 1  
+Enable Network Adapter: Check  
+Attached to: NAT  
+Cable Connected: Check  
+  * Adapter 2  
+Enable Network Adapter: Check  
+Attached to: Bridged Adapter  
+Name: en*: Ethernet (スイッチに接続しているEtherポートを選択)  
+Promiscuous Mode: Allow All  
+Cable Connected: Check
+
+# 各端末を起動する
+## サーバ
+### Webサーバ・VM Managerを起動する
+```
+$ cd ~/ein_rails  
+$ rails s -b 0.0.0.0
 ```
 
-
-Play
-----
-
-To run without virtual slicing, run `lib/routing_switch.rb` as
-follows:
-
-```bash
-./bin/trema run lib/routing_switch.rb -c trema.conf
+### Tremaを起動する
+```
+$ cd ~/routing_switch  
+$ bin/trema run lib/routing_switch.rb
 ```
 
-To run with virtual slicing support, run `lib/routing_switch.rb` with
-`-- --slicing` options as follows:
-
-```bash
-./bin/trema run lib/routing_switch.rb -c trema.conf -- --slicing
-```
-
-In another terminal, you can create virtual slices with the following
-command:
-
-```bash
-./bin/slice add foo
-```
-
-Then add hosts to the slice with the following command:
-
-```bash
-./bin/slice add_host --mac 11:11:11:11:11:11 --port 0x1:1 --slice foo
-```
-
-
-REST API
---------
-
-To start the REST API server:
-
-```bash
-./bin/rackup
-```
-
-### Supported APIs
-
-Read [this](https://relishapp.com/trema/routing-switch/docs/rest-api) for details.
-
-Description                 | Method | URI
-----------------------------|--------|--------------------------------------------------------------
-Create a slice              | POST   | `/slices`
-Delete a slice              | DELETE | `/slices`
-List slices                 | GET    | `/slices`
-Shows a slice               | GET    | `/slices/:slice_id`
-Add a port to a slice       | POST   | `/slices/:slice_id/ports`
-Delete a port from a slice  | DELETE | `/slices/:slice_id/ports`
-List ports                  | GET    | `/slices/:slice_id/ports`
-Shows a port                | GET    | `/slices/:slice_id/ports/:port_id`
-Adds a host to a slice      | POST   | `/slices/:slice_id/ports/:port_id/mac_addresses`
-Deletes a host from a slice | DELETE | `/slices/:slice_id/ports/:port_id/mac_addresses`
-List MAC addresses          | GET    | `/slices/:slice_id/ports/:port_id/mac_addresses`
-Shows a MAC address         | GET    | `/slices/:slice_id/ports/:port_id/mac_addresses/:mac_address`
+## ホストA, B
+### OpenVZカーネルを起動する
+[Shift]を押しながらホスト端末を起動する．  
+すると，カーネル選択画面になるので，  
+[Advanced options for Ubuntu] -> [Ubuntu, with Linux 2.6.32-openvz-042stab113.11-amd64]  
+を選択する．  
+OpenVZは自動起動設定されているので，起動するだけで準備は完了する．
